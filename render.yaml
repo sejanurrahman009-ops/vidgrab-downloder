@@ -1,0 +1,32 @@
+services:
+  # ──────────────────────────────────────────────
+  # BACKEND SERVICE (FastAPI + yt-dlp + ffmpeg)
+  # ──────────────────────────────────────────────
+  - type: web
+    name: vidgrab-backend
+    env: docker
+    region: ohio # Adjust if needed
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free # Change to starter/standard for production
+    envVars:
+      - key: PORT
+        value: 8000
+
+  # ──────────────────────────────────────────────
+  # FRONTEND SERVICE (Next.js)
+  # ──────────────────────────────────────────────
+  - type: web
+    name: vidgrab-frontend
+    env: node
+    region: ohio # Adjust if needed
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    plan: free # Change to starter/standard for production
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: vidgrab-backend
+          envVarKey: RENDER_EXTERNAL_URL

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VidGrab — Fast & Free Video Downloader{% endblock %}</title>
+    <meta name="description" content="{% block description %}Download high-quality videos for free from YouTube, TikTok, Instagram, and more.{% endblock %}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen selection:bg-purple-500/30 selection:text-white">
+
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 border-b border-[#1e2d4a]/60 backdrop-blur-md bg-[#050a14]/80">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg glow-btn flex items-center justify-center text-white font-bold text-sm">V</div>
+                <span class="font-bold text-lg tracking-tight gradient-text">VidGrab</span>
+            </a>
+            <nav class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+                <a href="/#features" class="hover:text-white transition-colors">Features</a>
+                <a href="/#how" class="hover:text-white transition-colors">How it Works</a>
+                <a href="/#seo-guide" class="hover:text-white transition-colors">Guides</a>
+                <a href="/#faq" class="hover:text-white transition-colors">FAQ</a>
+            </nav>
+            <a href="/#downloader" class="text-sm px-4 py-2 rounded-lg border border-purple-500/40 text-purple-400 hover:bg-purple-500/10 transition-all">
+                Try Free &rarr;
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[#1e2d4a]/40 pt-8 pb-24 px-4 text-center text-slate-500 text-sm bg-[#050a14]">
+        <div class="max-w-4xl mx-auto flex flex-col items-center justify-center gap-4">
+            <p>&copy; 2026 <span class="gradient-text font-semibold">VidGrab</span>. All rights reserved. For personal use only.</p>
+            <div class="flex gap-4">
+                <a href="/privacy-policy" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="/terms-of-conditions" class="hover:text-white transition-colors">Terms & Conditions</a>
+            </div>
+            <p class="text-xs max-w-xl mx-auto mt-2">
+                Downloading copyrighted content without permission may be illegal in your country. We do not host any files on our servers.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Sticky Footer Banner Ad -->
+    <div id="sticky-ad-container" class="fixed bottom-0 left-0 w-full bg-[#050a14]/90 backdrop-blur-md border-t border-[#1e2d4a] z-50 p-2 flex justify-center shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div class="relative">
+            <button onclick="document.getElementById('sticky-ad-container').style.display='none'" class="absolute -top-3 -right-3 w-6 h-6 bg-slate-800 text-slate-300 rounded-full flex items-center justify-center text-xs border border-slate-600 hover:bg-slate-700 z-10" aria-label="Close Ad">
+                &times;
+            </button>
+            <div class="w-[320px] h-[50px] md:w-[728px] md:h-[90px] bg-black/40 border border-slate-800 rounded flex items-center justify-center overflow-hidden">
+                <span class="text-slate-500 text-xs">Advertisement (Sticky Banner)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JS -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

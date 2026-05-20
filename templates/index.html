@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Adsterra Configuration -->
+<script>
+    const ADSTERRA_DIRECT_LINK = "https://www.highperformanceformat.com/YOUR_DIRECT_LINK_ID/invoke.js"; // Replace this
+</script>
+
+<!-- Hero Section -->
+<section id="downloader" class="relative flex-1 flex flex-col items-center justify-center px-4 py-20 overflow-hidden">
+    <!-- Decorative glows -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-500/8 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- INITIAL STATE -->
+    <div id="initial-state" class="w-full flex flex-col items-center">
+        <!-- Badge -->
+        <div class="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-sm animate-float-up">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            Free &middot; HD Quality &middot; No Registration
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-4xl md:text-6xl font-extrabold text-center leading-tight mb-4 animate-float-up">
+            Download Any Video <span class="shimmer-text">Instantly</span>
+        </h1>
+        <p class="text-slate-400 text-center text-lg md:text-xl max-w-xl mb-10 animate-float-up">
+            Paste a link from YouTube, TikTok, Instagram &amp; more — get your video in seconds, completely free.
+        </p>
+
+        <!-- Input Card -->
+        <div class="w-full max-w-2xl glass-card rounded-2xl p-6 shadow-2xl animate-float-up">
+            <form id="url-form" class="flex flex-col sm:flex-row gap-3">
+                <div class="flex-1 relative">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg">🔗</span>
+                    <input id="url-input" type="text" placeholder="Paste video URL here…" class="input-glow w-full bg-[#0a1628] border border-[#1e2d4a] rounded-xl pl-10 pr-4 py-3.5 text-white placeholder-slate-500 text-sm transition-all" required />
+                </div>
+                <button id="fetch-btn" type="submit" class="glow-btn text-white font-semibold px-8 py-3.5 rounded-xl whitespace-nowrap min-w-[160px]">
+                    <span id="fetch-text">⬇ Download</span>
+                    <span id="fetch-spinner" class="hidden flex items-center justify-center gap-2">
+                        <span class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Processing…
+                    </span>
+                </button>
+            </form>
+            <p id="error-msg" class="hidden mt-3 text-red-400 text-sm flex items-center gap-1"><span>⚠</span> <span id="error-text"></span></p>
+            <p class="mt-3 text-slate-500 text-xs text-center">
+                Supports YouTube, TikTok, Instagram, Facebook, Twitter, Vimeo &amp; more
+            </p>
+        </div>
+
+        <!-- Platform Pills -->
+        <div class="mt-8 flex flex-col items-center gap-6 animate-float-up">
+            <div class="flex flex-wrap justify-center gap-2">
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #FF0000">▶</span>YouTube</span>
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #69C9D0">♪</span>TikTok</span>
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #E1306C">◈</span>Instagram</span>
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #1877F2">f</span>Facebook</span>
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #1DA1F2">𝕏</span>Twitter</span>
+                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #1AB7EA">V</span>Vimeo</span>
+            </div>
+            <!-- Ad under the input area -->
+            <div class="hidden md:flex w-full max-w-[728px] h-[90px] overflow-hidden rounded-xl border border-purple-500/20 bg-black/20 backdrop-blur-sm p-2 items-center justify-center text-slate-500 text-xs">
+                Advertisement (728x90 Banner)
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING STATE AD -->
+    <div id="loading-state" class="hidden mt-10 animate-float-up flex-col items-center">
+        <p class="text-slate-400 text-sm mb-4">While you wait, check out our sponsors:</p>
+        <div class="rounded-xl border border-purple-500/30 p-2 bg-[#0d1626] w-full max-w-[300px] h-[250px] flex items-center justify-center text-slate-500 text-xs">
+            Advertisement (300x250 Banner)
+        </div>
+    </div>
+
+    <!-- RESULTS AREA (STEP THREE) -->
+    <div id="results-area" class="hidden w-full max-w-4xl animate-float-up mt-8">
+        
+        <div class="flex flex-col items-center justify-center flex-1 py-12 text-center relative overflow-hidden">
+            <!-- Big glow -->
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="glass-card rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-2xl transition-all duration-700 opacity-100 translate-y-0" style="border-color: rgba(108,99,255,0.2)">
+                <!-- Success icon -->
+                <div class="relative mb-4 flex justify-center">
+                    <div class="w-16 h-16 rounded-full bg-purple-500/10 border-2 border-purple-500/40 flex items-center justify-center animate-bounce-in animate-glow-pulse">
+                        <span class="text-3xl">⬇</span>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl sm:text-3xl font-extrabold mb-1 gradient-text">Video Details</h2>
+                <p class="text-slate-400 text-sm mb-6">Choose format and quality below to start download.</p>
+
+                <!-- Video metadata card -->
+                <div class="mb-6 p-4 bg-[#0a1628] rounded-xl border border-[#1e2d4a] flex flex-col sm:flex-row items-center sm:items-start gap-4 text-left">
+                    <img id="vid-thumb" src="" alt="Thumbnail" class="w-24 h-24 rounded-lg object-cover bg-slate-800 border border-[#1e2d4a]" />
+                    <div class="flex-1 min-w-0">
+                        <h3 id="vid-title" class="text-white font-bold text-base line-clamp-2 mb-1"></h3>
+                        <p id="vid-uploader" class="text-purple-400 text-xs font-semibold mb-1"></p>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            <span id="vid-duration" class="px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs"></span>
+                            <span id="vid-views" class="px-2 py-0.5 rounded bg-[#1e2d4a] text-slate-300 text-xs"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DOWNLOAD OPTIONS STATE -->
+                <div id="options-state" class="space-y-6 text-left animate-float-up">
+                    <div class="p-2 border border-purple-500/20 rounded bg-[#0d1626] flex items-center justify-center text-xs text-slate-500 mb-4 h-[90px] w-full max-w-[728px] mx-auto">
+                        Advertisement (Native / Banner)
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Download Format Type</label>
+                        <div class="grid grid-cols-2 gap-2 bg-[#060c18] p-1 rounded-xl border border-[#1e2d4a]">
+                            <button id="type-video-btn" class="py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 bg-purple-500/20 border border-purple-500/40 text-white">🎥 Video</button>
+                            <button id="type-audio-btn" class="py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white">🎵 Audio</button>
+                        </div>
+                    </div>
+
+                    <!-- Video Options -->
+                    <div id="video-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Video Quality</label>
+                            <select id="videoQuality" class="w-full bg-[#060c18] border border-[#1e2d4a] text-slate-200 rounded-xl p-3 text-sm focus:border-purple-500/50 focus:outline-none">
+                                <option value="best">Best Quality</option>
+                                <option value="1080p">1080p</option>
+                                <option value="720p">720p</option>
+                                <option value="480p">480p</option>
+                                <option value="360p">360p</option>
+                                <option value="worst">Low Quality</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Video Format</label>
+                            <select id="videoFormat" class="w-full bg-[#060c18] border border-[#1e2d4a] text-slate-200 rounded-xl p-3 text-sm focus:border-purple-500/50 focus:outline-none">
+                                <option value="mp4">MP4</option>
+                                <option value="mkv">MKV</option>
+                                <option value="webm">WEBM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Audio Options -->
+                    <div id="audio-options" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Audio Bitrate</label>
+                            <select id="audioQuality" class="w-full bg-[#060c18] border border-[#1e2d4a] text-slate-200 rounded-xl p-3 text-sm focus:border-cyan-500/50 focus:outline-none">
+                                <option value="320">320 kbps (Ultra)</option>
+                                <option value="256">256 kbps</option>
+                                <option value="192" selected>192 kbps (High)</option>
+                                <option value="128">128 kbps</option>
+                                <option value="64">64 kbps</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Audio Format</label>
+                            <select id="audioFormat" class="w-full bg-[#060c18] border border-[#1e2d4a] text-slate-200 rounded-xl p-3 text-sm focus:border-cyan-500/50 focus:outline-none">
+                                <option value="mp3">MP3</option>
+                                <option value="m4a">M4A</option>
+                                <option value="wav">WAV</option>
+                                <option value="aac">AAC</option>
+                                <option value="flac">FLAC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Premium Ad Button (Decoy) -->
+                    <a href="javascript:void(0)" onclick="window.open(ADSTERRA_DIRECT_LINK, '_blank')" class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-transform hover:scale-[1.01]">
+                        👑 Fast Download (Premium Server)
+                    </a>
+
+                    <button id="start-job-btn" class="glow-btn w-full text-white font-bold py-4 rounded-xl text-lg transition-transform hover:scale-[1.01]">
+                        🚀 Generate Download Link
+                    </button>
+                </div>
+
+                <!-- PROCESSING STATE -->
+                <div id="processing-state" class="hidden bg-[#0a1628] p-6 rounded-xl border border-[#1e2d4a] space-y-5 animate-bounce-in text-left">
+                    <div class="flex items-center justify-between">
+                        <span id="process-label" class="text-sm font-semibold text-white">🔄 Initializing request...</span>
+                        <span id="process-percent" class="text-sm font-bold text-purple-400 tabular-nums">0%</span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full h-2.5 bg-[#1e2d4a] rounded-full overflow-hidden">
+                        <div id="process-bar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background: linear-gradient(90deg, #6c63ff, #00d4ff)"></div>
+                    </div>
+
+                    <p id="process-desc" class="text-slate-400 text-xs">Connecting to download server, please wait.</p>
+
+                    <button id="cancel-job-btn" class="w-full py-2.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all text-center">
+                        ✕ Cancel Download
+                    </button>
+                </div>
+
+                <!-- COMPLETED STATE -->
+                <div id="completed-state" class="hidden space-y-6 animate-bounce-in">
+                    <div class="p-4 rounded-xl bg-green-500/5 border border-green-500/20 text-left flex items-start gap-3">
+                        <span class="text-green-400 text-xl">✓</span>
+                        <div>
+                            <h4 class="text-white font-bold text-sm">Download Ready!</h4>
+                            <p class="text-slate-400 text-xs mt-0.5">The video has been successfully processed and is ready for download.</p>
+                        </div>
+                    </div>
+
+                    <a id="download-now-btn" href="#" onclick="window.open(ADSTERRA_DIRECT_LINK, '_blank')" class="glow-btn-green block w-full text-[#050a14] font-black py-4 rounded-xl text-xl animate-glow-pulse text-center no-underline hover:scale-[1.02] transition-transform">
+                        ⬇ Save File to Device
+                    </a>
+
+                    <button id="back-to-format-btn" class="w-full py-3 rounded-xl border border-[#1e2d4a] text-slate-400 hover:text-white text-sm font-semibold transition-all">
+                        &larr; Choose Different Format
+                    </button>
+                </div>
+
+                <!-- FAILED STATE -->
+                <div id="failed-state" class="hidden space-y-6 animate-bounce-in text-left">
+                    <div class="p-5 rounded-xl bg-red-500/5 border border-red-500/20">
+                        <div class="flex items-center gap-2 text-red-400 font-bold mb-2"><span>❌</span> Failed to download</div>
+                        <p id="fail-msg" class="text-slate-400 text-xs overflow-auto max-h-32 p-2 bg-[#060c18] rounded border border-[#1e2d4a] font-mono whitespace-pre-wrap"></p>
+                    </div>
+                    <button id="retry-job-btn" class="glow-btn w-full text-white font-bold py-4 rounded-xl text-lg">
+                        🔄 Retry Download
+                    </button>
+                    <button id="back-to-format-btn-fail" class="w-full py-3 rounded-xl border border-[#1e2d4a] text-slate-400 hover:text-white text-sm font-semibold transition-all text-center">
+                        &larr; Back to Select
+                    </button>
+                </div>
+
+            </div>
+            
+            <div class="text-center mt-6">
+                <button id="download-another-btn" class="text-slate-400 hover:text-white underline text-sm">
+                    Download Another Video
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="py-20 px-4 border-t border-[#1e2d4a]/40 bg-[#080f1d]/50">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-2">Why Choose <span class="gradient-text">VidGrab</span>?</h2>
+        <p class="text-slate-400 text-center mb-12">Everything you need, nothing you don't.</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="glass-card rounded-xl p-6 hover:border-purple-500/30 transition-all group">
+                <div class="text-3xl mb-3">⚡</div><h3 class="font-semibold text-white mb-1 group-hover:gradient-text transition-all">Lightning Fast</h3><p class="text-slate-400 text-sm">Downloads processed in seconds. No waiting, no queues.</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 hover:border-purple-500/30 transition-all group">
+                <div class="text-3xl mb-3">🎥</div><h3 class="font-semibold text-white mb-1 group-hover:gradient-text transition-all">HD & 4K Quality</h3><p class="text-slate-400 text-sm">Get the highest available quality for every video.</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 hover:border-purple-500/30 transition-all group">
+                <div class="text-3xl mb-3">🔒</div><h3 class="font-semibold text-white mb-1 group-hover:gradient-text transition-all">100% Safe</h3><p class="text-slate-400 text-sm">No malware, no ads in your download, no account needed.</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 hover:border-purple-500/30 transition-all group">
+                <div class="text-3xl mb-3">📱</div><h3 class="font-semibold text-white mb-1 group-hover:gradient-text transition-all">Mobile Friendly</h3><p class="text-slate-400 text-sm">Works perfectly on phones, tablets, and desktops.</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 hover:border-purple-500/30 transition-all group">
+                <div class="text-3xl mb-3">🌍</div><h3 class="font-semibold text-white mb-1 group-hover:gradient-text transition-all">Multi-Platform</h3><p class="text-slate-400 text-sm">Supports 20+ platforms including YouTube, TikTok & more.</p>
+            </div>
+            <div class="glass-card rounded-xl p-6 hover:border-purple-500/30 transition-all group">
+                <div class="text-3xl mb-3">💸</div><h3 class="font-semibold text-white mb-1 group-hover:gradient-text transition-all">Completely Free</h3><p class="text-slate-400 text-sm">No subscriptions, no hidden charges, no catch.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it Works -->
+<section id="how" class="py-20 px-4 bg-[#050a14]">
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-2">How It <span class="gradient-text">Works</span></h2>
+        <p class="text-slate-400 text-center mb-12">3 simple steps to your video.</p>
+        <div class="flex flex-col md:flex-row gap-6 items-center">
+            <div class="flex-1 flex flex-col items-center text-center relative">
+                <div class="w-16 h-16 rounded-2xl glow-btn flex items-center justify-center text-white font-black text-xl mb-4">01</div>
+                <h3 class="font-semibold text-white text-lg mb-1">Paste URL</h3><p class="text-slate-400 text-sm">Copy the video link from any platform and paste it above.</p>
+                <div class="hidden md:block absolute text-slate-600 text-2xl mt-6 ml-40">→</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center text-center relative">
+                <div class="w-16 h-16 rounded-2xl glow-btn flex items-center justify-center text-white font-black text-xl mb-4">02</div>
+                <h3 class="font-semibold text-white text-lg mb-1">Process</h3><p class="text-slate-400 text-sm">Our system fetches the best quality stream for your video.</p>
+                <div class="hidden md:block absolute text-slate-600 text-2xl mt-6 ml-40">→</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-2xl glow-btn flex items-center justify-center text-white font-black text-xl mb-4">03</div>
+                <h3 class="font-semibold text-white text-lg mb-1">Download</h3><p class="text-slate-400 text-sm">Hit the download button and save your video in HD!</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SEO Guide -->
+<section id="seo-guide" class="py-20 px-4 bg-[#080f1d]/50 border-t border-[#1e2d4a]/40">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">The Ultimate Guide to <span class="gradient-text">Downloading Videos</span></h2>
+            <p class="text-slate-400 text-lg">Learn how to easily save videos from your favorite platforms directly to your device.</p>
+        </div>
+
+        <div class="space-y-16">
+            <!-- Article 1 -->
+            <article>
+                <h3 class="text-2xl font-bold text-white mb-4">How to Download YouTube Videos for Free (HD & 4K)</h3>
+                <div class="text-slate-300 leading-relaxed text-[15px] space-y-4">
+                    <p>There are many reasons you might want to download a YouTube video. Maybe you want to watch it offline during a flight, save it for a presentation, or keep a copy of your favorite music video. Whatever the reason, VidGrab makes it incredibly easy — and completely free.</p>
+                    <p>Unlike other downloaders that bombard you with pop-ups and fake download buttons, VidGrab gives you a clean, simple experience. Just paste the URL, choose your quality, and download. It's that simple.</p>
+                    <h4 class="text-lg font-bold text-white mt-6 mb-2">The Easiest Method</h4>
+                    <p>The fastest way to download any YouTube video is with VidGrab. Here's how:</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Go to YouTube and find the video you want to download.</li>
+                        <li>Copy the video URL from the address bar.</li>
+                        <li>Go to VidGrab.com and paste the URL in the input box.</li>
+                        <li>Click the Download button.</li>
+                        <li>Choose your preferred quality (HD 1080p, SD 720p, or Audio MP3).</li>
+                        <li>Click 'Save File to Device' — done!</li>
+                    </ul>
+                </div>
+            </article>
+
+            <div class="flex justify-center mx-auto w-full max-w-[728px] h-[90px] border border-purple-500/20 rounded-xl items-center text-slate-500 text-xs bg-[#0d1626]">
+                Advertisement (728x90 Banner)
+            </div>
+
+            <!-- Article 2 -->
+            <article>
+                <h3 class="text-2xl font-bold text-white mb-4">Download TikTok Videos Without Watermark</h3>
+                <div class="text-slate-300 leading-relaxed text-[15px] space-y-4">
+                    <p>TikTok adds a watermark with the creator's username on every downloaded video. While this helps credit the creator, it can be distracting if you want to save a video for personal use, create a compilation, or share it on other platforms.</p>
+                    <p>VidGrab automatically removes the TikTok watermark when you download, giving you a clean, high-quality video file.</p>
+                    <h4 class="text-lg font-bold text-white mt-6 mb-2">Tips for Best Quality</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Always download in HD (1080p) for the best quality.</li>
+                        <li>If the video was originally uploaded in low quality, the download will match the original quality.</li>
+                        <li>VidGrab preserves the original audio quality — no re-encoding or compression.</li>
+                        <li>Downloaded videos are saved in MP4 format, which works on all devices.</li>
+                    </ul>
+                </div>
+            </article>
+
+            <div class="flex justify-center mx-auto w-full max-w-[728px] h-[90px] border border-purple-500/20 rounded-xl items-center text-slate-500 text-xs bg-[#0d1626]">
+                Advertisement (728x90 Banner)
+            </div>
+
+            <!-- Article 3 -->
+            <article>
+                <h3 class="text-2xl font-bold text-white mb-4">How to Download Private Facebook & Instagram Videos</h3>
+                <div class="text-slate-300 leading-relaxed text-[15px] space-y-4">
+                    <p>Most video downloaders only work with public videos. When you try to download a private video (one shared only with friends or specific groups), they fail with an error. This is because private videos require authentication — the downloader needs to prove it has permission to access the video.</p>
+                    <p>Instagram Stories disappear after 24 hours, and there's no built-in option to save Reels to your device. VidGrab solves both problems — download any Instagram Reel, Story, or private Facebook video in full HD quality, permanently.</p>
+                    <h4 class="text-lg font-bold text-white mt-6 mb-2">Method: The Page Source Trick</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Open the private video in your browser (make sure you're logged in).</li>
+                        <li>Right-click on the page and select 'View Page Source' (or press Ctrl+U).</li>
+                        <li>Press Ctrl+F to search and type 'mp4' in the search box.</li>
+                        <li>Copy the direct URL and paste it into VidGrab.</li>
+                    </ul>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-20 px-4 border-t border-[#1e2d4a]/40 bg-[#080f1d]/50">
+    <div class="max-w-2xl mx-auto space-y-3">
+        <details class="glass-card rounded-xl group">
+            <summary class="p-5 cursor-pointer font-medium text-white flex justify-between items-center list-none outline-none">
+                Is VidGrab free to use?
+                <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <p class="px-5 pb-5 text-slate-400 text-sm">Yes! VidGrab is completely free with no hidden charges or subscriptions.</p>
+        </details>
+        
+        <details class="glass-card rounded-xl group">
+            <summary class="p-5 cursor-pointer font-medium text-white flex justify-between items-center list-none outline-none">
+                Do I need to create an account?
+                <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <p class="px-5 pb-5 text-slate-400 text-sm">No account is needed. Just paste a URL and download instantly.</p>
+        </details>
+
+        <div class="my-6 mx-auto w-full max-w-[728px] h-[90px] border border-purple-500/20 rounded-xl flex items-center justify-center text-slate-500 text-xs bg-[#0d1626]">
+            Advertisement (728x90 Banner)
+        </div>
+
+        <details class="glass-card rounded-xl group">
+            <summary class="p-5 cursor-pointer font-medium text-white flex justify-between items-center list-none outline-none">
+                Which video platforms are supported?
+                <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <p class="px-5 pb-5 text-slate-400 text-sm">We support YouTube, TikTok, Instagram, Facebook, Twitter, Vimeo, Dailymotion, and many more.</p>
+        </details>
+
+        <details class="glass-card rounded-xl group">
+            <summary class="p-5 cursor-pointer font-medium text-white flex justify-between items-center list-none outline-none">
+                Is it safe to use?
+                <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+            <p class="px-5 pb-5 text-slate-400 text-sm">Absolutely. We never store your URLs or personal data. Downloads are direct and secure.</p>
+        </details>
+    </div>
+</section>
+
+{% endblock %}
