@@ -48,7 +48,8 @@ templates = Jinja2Templates(directory="templates")
 # ──────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", context={"request": request})
+    return templates.TemplateResponse(name="index.html", context={"request": request})
+
 
 
 # ──────────────────────────────────────────────
