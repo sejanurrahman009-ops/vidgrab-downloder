@@ -26,6 +26,14 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
         "no_warnings": True,
         "progress_hooks": [_make_progress_hook(job_id)],
         "merge_output_format": req.video_format if req.media_type == "video" else None,
+        
+        # ──────────────────────────────────────────────
+        # ইউটিউবের বট ব্লক এড়ানোর জন্য হেডার ও ইউজার-এজেন্ট যুক্ত করা হলো
+        # ──────────────────────────────────────────────
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
     }
 
     # Ensure ffmpeg_location is absolute based on the backend directory
