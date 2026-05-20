@@ -19,6 +19,10 @@ QUALITY_MAP = {
 def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
     outtmpl = os.path.join(out_dir, f"{job_id}_%(title).80s.%(ext)s")
 
+    # মেইন ডিরেক্টরির পাথ বের করা (যেখানে cookies.txt ফাইলটি আছে)
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    cookies_path = os.path.join(backend_dir, "cookies.txt")
+
     opts: dict = {
         "outtmpl": outtmpl,
         "noplaylist": True,
@@ -28,17 +32,17 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
         "merge_output_format": req.video_format if req.media_type == "video" else None,
         
         # ──────────────────────────────────────────────
-        # ইউটিউবের বট ব্লক এবং সাইন-ইন এরর বাইপাস করার জন্য
+        # এখানে আমরা কুকিজ ফাইলের একদম নিখুঁত ফুল পাথ চিনিয়ে দিলাম
         # ──────────────────────────────────────────────
-        "cookiefile": "cookies.txt", 
+        "cookiefile": cookies_path if os.path.exists(cookies_path) else None, 
+        
         "http_headers": {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
         }
     }
 
-    # Ensure ffmpeg_location is absolute based on the backend directory
-    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # Ffmpeg লোকেশন সেট করা
     ffmpeg_path = os.path.join(backend_dir, "ffmpeg", "bin")
     if os.path.exists(ffmpeg_path):
         opts["ffmpeg_location"] = ffmpeg_path
@@ -51,7 +55,6 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
             "preferredquality": req.audio_quality,
         }]
     else:
-        # Use explicit format_id if provided, otherwise map quality
         if req.format_id and req.format_id not in ("best", "worst"):
             opts["format"] = req.format_id
         else:
