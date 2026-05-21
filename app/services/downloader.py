@@ -19,10 +19,6 @@ QUALITY_MAP = {
 def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
     outtmpl = os.path.join(out_dir, f"{job_id}_%(title).80s.%(ext)s")
 
-    # মেইন ডিরেক্টরির পাথ বের করা (যেখানে cookies.txt ফাইলটি আছে)
-    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    cookies_path = os.path.join(backend_dir, "cookies.txt")
-
     opts: dict = {
         "outtmpl": outtmpl,
         "noplaylist": True,
@@ -32,17 +28,23 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
         "merge_output_format": req.video_format if req.media_type == "video" else None,
         
         # ──────────────────────────────────────────────
-        # এখানে আমরা কুকিজ ফাইলের একদম নিখুঁত ফুল পাথ চিনিয়ে দিলাম
+        # OAuth এবং ক্লায়েন্ট অপশন বাইপাস (YouTube এর নতুন সিকিউরিটির জন্য)
         # ──────────────────────────────────────────────
-        "cookiefile": cookies_path if os.path.exists(cookies_path) else None, 
-        
+        "compat_opts": ["no-youtube-client-side-player"],
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["android", "web", "tv"],
+                "skip": ["dash", "hls"]
+            }
+        },
         "http_headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
         }
     }
 
-    # Ffmpeg লোকেশন সেট করা
+    # Ensure ffmpeg_location is absolute based on the backend directory
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     ffmpeg_path = os.path.join(backend_dir, "ffmpeg", "bin")
     if os.path.exists(ffmpeg_path):
         opts["ffmpeg_location"] = ffmpeg_path
@@ -68,9 +70,7 @@ def _make_progress_hook(job_id: str):
         if not job:
             return
         if d["status"] == "downloading":
-            # Extract percentage from yt-dlp's built-in formatted string (handles ANSI and missing bytes)
             pct_str = d.get("_percent_str", "0%").strip()
-            # Remove ANSI escape sequences which yt-dlp sometimes adds
             import re
             ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
             pct_str = ansi_escape.sub('', pct_str).replace('%', '')
@@ -81,7 +81,6 @@ def _make_progress_hook(job_id: str):
 
             speed = d.get("speed")
             job["speed"] = f"({speed / 1024 / 1024:.2f} MB/s)" if speed else ""
-            
             job["status"] = "downloading"
         elif d["status"] == "finished":
             job["progress"] = 100
@@ -103,12 +102,10 @@ async def run_download(job_id: str, req: DownloadRequest):
 
             file_path, info = await loop.run_in_executor(None, _sync_download)
 
-            # For audio, yt-dlp changes the extension
             if req.media_type == "audio":
                 base = os.path.splitext(file_path)[0]
                 file_path = f"{base}.{req.audio_format}"
 
-            # Fallback: scan directory for the job file
             if not os.path.exists(file_path):
                 candidates = [
                     os.path.join(DOWNLOAD_DIR, f)
