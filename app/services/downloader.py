@@ -2,9 +2,13 @@ import os
 import time
 import asyncio
 import yt_dlp
-import random
 from app.schemas.download import DownloadRequest
 from app.core.config import jobs, download_semaphore, DOWNLOAD_DIR
+
+# ──────────────────────────────────────────────────────────────────────
+# .env বা এনভায়রনমেন্ট ভ্যারিয়েবল থেকে প্রক্সি ইউআরএল রিড করা হচ্ছে
+# ──────────────────────────────────────────────────────────────────────
+YOUTUBE_PROXY = os.getenv("YOUTUBE_PROXY")
 
 QUALITY_MAP = {
     "best":  "bestvideo+bestaudio/best",
@@ -16,15 +20,6 @@ QUALITY_MAP = {
     "240p":  "bestvideo[height<=240]+bestaudio/best[height<=240]",
     "144p":  "bestvideo[height<=144]+bestaudio/best[height<=144]",
 }
-
-# ২০২৬ সালের কার্যকরী কিছু ফ্রি পাবলিক প্রক্সি লিস্ট (Render IP ব্লক বাইপাস করার জন্য)
-FREE_PROXIES = [
-    "http://45.70.198.90:8080",
-    "http://185.121.139.14:80",
-    "http://200.105.215.18:8080",
-    "http://190.61.44.186:8080",
-    "http://45.160.40.1:8080",
-]
 
 def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
     outtmpl = os.path.join(out_dir, f"{job_id}_%(title).80s.%(ext)s")
@@ -40,15 +35,7 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
         "progress_hooks": [_make_progress_hook(job_id)],
         "merge_output_format": req.video_format if req.media_type == "video" else None,
         
-        # ──────────────────────────────────────────────
-        # ১. রিয়েল কুকিজ পাথ লিংকিং
-        # ──────────────────────────────────────────────
         "cookiefile": cookies_path if os.path.exists(cookies_path) else None,
-        
-        # ──────────────────────────────────────────────
-        # ২. ফ্রি প্রক্সি রোটেশন যুক্ত করা হলো (Render IP বাইপাস)
-        # ──────────────────────────────────────────────
-        "proxy": random.choice(FREE_PROXIES),
         
         "extractor_args": {
             "youtube": {
@@ -57,10 +44,13 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
             }
         },
         "http_headers": {
-            "User-Agent": "com.google.ios.youtube/19.12.3 (iPhone16,2; U; CPU iPhone OS 17_4 like Mac OS X; en_US)",
+            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
             "Accept-Language": "en-US,en;q=0.9",
         }
     }
+
+    if YOUTUBE_PROXY and "YOUR_PROXY_IP" not in YOUTUBE_PROXY:
+        opts["proxy"] = YOUTUBE_PROXY
 
     ffmpeg_path = os.path.join(backend_dir, "ffmpeg", "bin")
     if os.path.exists(ffmpeg_path):
@@ -106,6 +96,18 @@ def _make_progress_hook(job_id: str):
 
 async def run_download(job_id: str, req: DownloadRequest):
     job = jobs[job_id]
+    
+    # ──────────────────────────────────────────────────────────────────────
+    # ইউটিউব লিংক ডিটেকশন এবং মেইনটেন্যান্স মুড অন
+    # ──────────────────────────────────────────────────────────────────────
+    youtube_keywords = ["youtube.com", "youtu.be", "y2u.be"]
+    if any(keyword in req.url.lower() for keyword in youtube_keywords):
+        job.update({
+            "status": "failed",
+            "error": "ইউটিউব ডাউনলোডার সার্ভিসটি বর্তমানে আপগ্রেড ও মেইনটেন্যান্সের জন্য বন্ধ আছে। দয়া করে ফেসবুক, ইনস্টাগ্রাম বা টিকটক লিংক ব্যবহার করুন।"
+        })
+        return
+
     async with download_semaphore:
         try:
             loop = asyncio.get_event_loop()
@@ -142,20 +144,4 @@ async def run_download(job_id: str, req: DownloadRequest):
                 "completed_at": time.time(),
             })
         except Exception as exc:
-            # যদি প্রথম প্রক্সি ফেইল করে, প্রক্সি ছাড়া শেষ একটা ট্রাই মারবে ব্যাকআপ হিসেবে
-            try:
-                opts = build_ydl_opts(req, job_id, DOWNLOAD_DIR)
-                if "proxy" in opts:
-                    del opts["proxy"]
-                def _sync_download_fallback():
-                    with yt_dlp.YoutubeDL(opts) as ydl:
-                        info = ydl.extract_info(req.url, download=True)
-                        return ydl.prepare_filename(info), info
-                file_path, info = await loop.run_in_executor(None, _sync_download_fallback)
-                # ... বাকি সেম সাকসেস লজিক
-                job.update({
-                    "status": "completed", "progress": 100, "file_path": file_path,
-                    "file_name": os.path.basename(file_path), "title": info.get("title", "media")
-                })
-            except Exception:
-                job.update({"status": "failed", "error": str(exc)})
+            job.update({"status": "failed", "error": str(exc)})
