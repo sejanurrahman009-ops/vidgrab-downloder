@@ -19,6 +19,10 @@ QUALITY_MAP = {
 def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
     outtmpl = os.path.join(out_dir, f"{job_id}_%(title).80s.%(ext)s")
 
+    # মেইন ডিরেক্টরির নিখুঁত পাথ বের করা যাতে cookies.txt ফাইল ১০০% খুঁজে পায়
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    cookies_path = os.path.join(backend_dir, "cookies.txt")
+
     opts: dict = {
         "outtmpl": outtmpl,
         "noplaylist": True,
@@ -28,23 +32,26 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
         "merge_output_format": req.video_format if req.media_type == "video" else None,
         
         # ──────────────────────────────────────────────
-        # OAuth এবং ক্লায়েন্ট অপশন বাইপাস (YouTube এর নতুন সিকিউরিটির জন্য)
+        # ২০২৬ সালের লেটেস্ট ইউটিউব সিকিউরিটি বাইপাস (PO Token + Real Cookies)
         # ──────────────────────────────────────────────
-        "compat_opts": ["no-youtube-client-side-player"],
+        "cookiefile": cookies_path if os.path.exists(cookies_path) else None,
+        "compat_opts": ["no-youtube-client-side-player", "no-youtube-unavailable-videos"],
         "extractor_args": {
             "youtube": {
-                "player_client": ["android", "web", "tv"],
-                "skip": ["dash", "hls"]
+                # শুধুমাত্র অফিশিয়াল মোবাইল এবং টিভি ক্লায়েন্ট ব্যবহার করা হবে
+                "player_client": ["android", "tv"],
+                "skip": ["dash", "hls"],
+                # ইউটিউবকে ধোঁকা দেওয়ার জন্য PO Token ইমিটেশন
+                "po_token": ["web+web_embedded_launchplayer"],
             }
         },
         "http_headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Android 14; Mobile; rv:124.0) Gecko/124.0 Firefox/124.0",
             "Accept-Language": "en-US,en;q=0.9",
         }
     }
 
-    # Ensure ffmpeg_location is absolute based on the backend directory
-    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # Ffmpeg লোকেশন সেট করা
     ffmpeg_path = os.path.join(backend_dir, "ffmpeg", "bin")
     if os.path.exists(ffmpeg_path):
         opts["ffmpeg_location"] = ffmpeg_path
