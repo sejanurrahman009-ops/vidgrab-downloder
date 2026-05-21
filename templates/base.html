@@ -20,6 +20,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/css/style.css">
     {% block head_extra %}{% endblock %}
+
+    <!-- Adsterra Popunder — must be just before </head> -->
+    <script src="https://pl29512408.effectivecpmnetwork.com/7c/7d/03/7c7d035c88160778a3224223f84cafda.js"></script>
 </head>
 <body class="flex flex-col min-h-screen selection:bg-purple-500/30 selection:text-white">
 
@@ -54,16 +57,21 @@
         </div>
     </footer>
 
-    <!-- Ad Banner -->
+    <!-- Sticky Bottom Ad Banner -->
     <div id="sticky-ad-container" class="fixed bottom-0 left-0 w-full bg-[#050a14]/90 backdrop-blur-md border-t border-[#1e2d4a] z-50 p-2 flex justify-center">
         <div class="relative">
             <button onclick="document.getElementById('sticky-ad-container').style.display='none'" class="absolute -top-3 -right-3 w-6 h-6 bg-slate-800 rounded-full text-xs hover:bg-slate-700">&times;</button>
+            <!-- Adsterra Sticky Banner Ad Unit — replace the div below with your Adsterra banner ad code from dashboard -->
             <div class="w-[320px] h-[50px] md:w-[728px] md:h-[90px] bg-black/40 border border-slate-800 rounded flex items-center justify-center overflow-hidden">
+                <!-- PASTE YOUR ADSTERRA DISPLAY BANNER CODE HERE (320x50 mobile / 728x90 desktop) -->
                 <span class="text-slate-500 text-xs">Advertisement</span>
             </div>
         </div>
     </div>
 
     <script src="/static/js/main.js"></script>
+
+    <!-- Adsterra Social Bar / Native Banner — must be just before </body> -->
+    <script src="https://pl29512409.effectivecpmnetwork.com/f2/e8/ac/f2e8ac4ac6c3fea924a36ca34d09c7bb.js"></script>
 </body>
 </html>
