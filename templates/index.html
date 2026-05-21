@@ -27,9 +27,24 @@
         <p class="text-slate-400 text-center text-lg md:text-xl max-w-xl mb-10 animate-float-up">
             Paste a link from TikTok, Instagram &amp; more — get your video in seconds, completely free.
         </p>
-        <div class="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-400 text-sm">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            YouTube is currently unsupported due to API restrictions. Please use Facebook, Instagram, or TikTok links for video downloads.
+         <div class="max-w-2xl mx-auto my-6">
+           <div class="relative group bg-amber-950/20 border border-amber-500/30 rounded-xl p-4 flex items-start gap-4 shadow-lg shadow-amber-900/10 backdrop-blur-sm overflow-hidden">
+            <div class="flex-shrink-0">
+            <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center animate-pulse">
+                <i class="fas fa-exclamation-triangle text-amber-400 text-lg"></i>
+            </div>
+        </div>
+        
+        <div>
+            <h4 class="text-amber-400 font-semibold text-sm uppercase tracking-wider mb-1">Service Notification</h4>
+            <p class="text-amber-200/80 text-sm leading-relaxed">
+                YouTube is currently <span class="font-bold text-amber-300">unsupported</span> due to strict API restrictions. Please use links from 
+                <span class="text-white font-medium">Facebook, Instagram, or TikTok</span> for smooth downloads.
+            </p>
+          </div>
+        
+             <div class="absolute inset-0 border border-amber-500/10 rounded-xl group-hover:border-amber-500/30 transition-colors duration-300"></div>
+          </div>
        </div>
         <!-- Input Card -->
         <div class="w-full max-w-2xl glass-card rounded-2xl p-6 shadow-2xl animate-float-up">
@@ -55,7 +70,7 @@
         <!-- Platform Pills -->
         <div class="mt-8 flex flex-col items-center gap-6 animate-float-up">
             <div class="flex flex-wrap justify-center gap-2">
-                <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #FF0000">▶</span>YouTube</span>
+                <!-- <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #FF0000">▶</span>YouTube</span> -->
                 <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #69C9D0">♪</span>TikTok</span>
                 <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #E1306C">◈</span>Instagram</span>
                 <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0d1626] border border-[#1e2d4a] text-slate-300"><span style="color: #1877F2">f</span>Facebook</span>
