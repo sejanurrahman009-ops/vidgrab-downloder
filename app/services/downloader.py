@@ -44,8 +44,7 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
             }
         },
         "http_headers": {
-            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
-            "Accept-Language": "en-US,en;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         }
     }
 
@@ -98,13 +97,13 @@ async def run_download(job_id: str, req: DownloadRequest):
     job = jobs[job_id]
     
     # ──────────────────────────────────────────────────────────────────────
-    # ইউটিউব লিংক ডিটেকশন এবং মেইনটেন্যান্স মুড অন
+    # কঠোর মেইনটেন্যান্স মুড: ইউটিউবের জন্য রিকোয়েস্ট পাঠানোই হবে না
     # ──────────────────────────────────────────────────────────────────────
     youtube_keywords = ["youtube.com", "youtu.be", "y2u.be"]
     if any(keyword in req.url.lower() for keyword in youtube_keywords):
         job.update({
             "status": "failed",
-            "error": "ইউটিউব ডাউনলোডার সার্ভিসটি বর্তমানে আপগ্রেড ও মেইনটেন্যান্সের জন্য বন্ধ আছে। দয়া করে ফেসবুক, ইনস্টাগ্রাম বা টিকটক লিংক ব্যবহার করুন।"
+            "error": "The YouTube downloader service is currently under maintenance for upgrades. Please use Facebook, Instagram, or TikTok links instead."
         })
         return
 
@@ -114,6 +113,10 @@ async def run_download(job_id: str, req: DownloadRequest):
             opts = build_ydl_opts(req, job_id, DOWNLOAD_DIR)
 
             def _sync_download():
+                # ইউটিউব চেকটি এখানেও নিশ্চিত করা হচ্ছে
+                if any(k in req.url.lower() for k in youtube_keywords):
+                    raise Exception("YouTube downloader is in maintenance mode.")
+                
                 with yt_dlp.YoutubeDL(opts) as ydl:
                     info = ydl.extract_info(req.url, download=True)
                     return ydl.prepare_filename(info), info
