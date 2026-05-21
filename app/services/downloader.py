@@ -19,7 +19,6 @@ QUALITY_MAP = {
 def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
     outtmpl = os.path.join(out_dir, f"{job_id}_%(title).80s.%(ext)s")
 
-    # মেইন ডিরেক্টরির নিখুঁত পাথ বের করা যাতে cookies.txt ফাইল ১০০% খুঁজে পায়
     backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     cookies_path = os.path.join(backend_dir, "cookies.txt")
 
@@ -32,26 +31,23 @@ def build_ydl_opts(req: DownloadRequest, job_id: str, out_dir: str) -> dict:
         "merge_output_format": req.video_format if req.media_type == "video" else None,
         
         # ──────────────────────────────────────────────
-        # ২০২৬ সালের লেটেস্ট ইউটিউব সিকিউরিটি বাইপাস (PO Token + Real Cookies)
+        # সার্ভার ব্লক এড়াতে আলটিমেট ইমিটেশন ও আইওএস প্রোটোকল
         # ──────────────────────────────────────────────
         "cookiefile": cookies_path if os.path.exists(cookies_path) else None,
-        "compat_opts": ["no-youtube-client-side-player", "no-youtube-unavailable-videos"],
         "extractor_args": {
             "youtube": {
-                # শুধুমাত্র অফিশিয়াল মোবাইল এবং টিভি ক্লায়েন্ট ব্যবহার করা হবে
-                "player_client": ["android", "tv"],
-                "skip": ["dash", "hls"],
-                # ইউটিউবকে ধোঁকা দেওয়ার জন্য PO Token ইমিটেশন
-                "po_token": ["web+web_embedded_launchplayer"],
+                # এখানে ios এবং android_music ক্লায়েন্ট ব্যবহার করা হয়েছে যা সহজে ক্লাউড সার্ভার ব্লক করে না
+                "player_client": ["ios", "android_music"],
+                "player_skip": ["webpage", "configs"],
             }
         },
         "http_headers": {
-            "User-Agent": "Mozilla/5.0 (Android 14; Mobile; rv:124.0) Gecko/124.0 Firefox/124.0",
+            # আইফোনের রিয়েল ইউজার এজেন্ট ব্যবহার করে রিকোয়েস্ট মাস্কিং
+            "User-Agent": "com.google.ios.youtube/19.12.3 (iPhone16,2; U; CPU iPhone OS 17_4 like Mac OS X; en_US)",
             "Accept-Language": "en-US,en;q=0.9",
         }
     }
 
-    # Ffmpeg লোকেশন সেট করা
     ffmpeg_path = os.path.join(backend_dir, "ffmpeg", "bin")
     if os.path.exists(ffmpeg_path):
         opts["ffmpeg_location"] = ffmpeg_path
@@ -95,7 +91,6 @@ def _make_progress_hook(job_id: str):
     return hook
 
 async def run_download(job_id: str, req: DownloadRequest):
-    """Background coroutine: actually download the media."""
     job = jobs[job_id]
     async with download_semaphore:
         try:
